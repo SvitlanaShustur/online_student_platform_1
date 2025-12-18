@@ -359,3 +359,12 @@ JOIN students AS s ON s.student_id = en.student_id
 
 3. Для кожної категорії курсів знайти топ-1 курс за кількістю студентів.
 
+SELECT
+  c.category,
+  COUNT(DISTINCT s.student_id) AS student_cnt,
+  DENSE_RANK() OVER (ORDER BY COUNT(DISTINCT s.student_id) DESC) AS drnk
+FROM courses AS c
+JOIN enrollments AS en ON c.course_id = en.course_id
+JOIN students AS s ON s.student_id = en.student_id
+GROUP BY c.category
+ORDER BY drnk, c.category;
