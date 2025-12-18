@@ -174,15 +174,17 @@ sql
 
 ### **Задача 1. Базові SELECT**
 
-##1. Вивести всіх студентів, які зареєструвалися після 2024‑01‑01.
+##1. Вивести всіх студентів, які зареєструвалися після 2024-01-01.
 
 SELECT * 
 FROM students
-WHERE reg_date > '2024‑01‑01';
+WHERE reg_date > '2024-01-01';
 
 ##2. Вивести всі курси категорії `"Data Science"`.
 
-SELECT course_name
+SELECT 
+	course_name,
+	category
 FROM courses
 WHERE category = 'Data Science'
 
@@ -216,7 +218,7 @@ GROUP BY course_name
 ORDER BY course_name ASC;
 
 
-## **Задача 3. JOIN‑аналіз**
+## **Задача 3. JOIN-аналіз**
 
 1. Вивести список курсів разом з іменами викладачів.
 
@@ -224,7 +226,7 @@ SELECT
   c.course_name,
   i.full_name
 FROM courses AS c
-JOIN instructors AS i ON c.instructor_id = i.instructor_id;
+INNER JOIN instructors AS i ON c.instructor_id = i.instructor_id;
 
 2. Вивести студентів та назви курсів, на які вони записані.
 
@@ -261,13 +263,31 @@ ORDER BY s.full_name ASC;
 
 2. Порахувати відсоток завершених уроків для кожного курсу.
 SELECT 
+ c.course_name,
  ROUND(
  SUM(
  	CASE 
 	 	WHEN completed = TRUE THEN 1 
 	ELSE 0 
 	END) * 100 / COUNT(*), 2) AS pr_completed
-from progress
+from progress AS p
+INNER JOIN enrollments AS en ON en.enrollment_id = p.enrollment_id
+INNER JOIN courses AS c ON  c.course_id = en.course_id
+GROUP BY c.course_name
+
+
+SELECT 
+ c.course_name,
+ ROUND(
+ SUM(
+ 	CASE 
+	 	WHEN completed = TRUE THEN 1 
+	ELSE 0 
+	END) * 100 / COUNT(*), 2) AS pr_completed
+from courses AS c
+INNER JOIN enrollments AS en ON c.course_id = en.course_id 
+INNER JOIN progress AS p ON en.enrollment_id = p.enrollment_id
+GROUP BY c.course_name
 
 3. Знайти студентів, які завершили всі уроки у своїх курсах.
 SELECT 
@@ -322,4 +342,20 @@ JOIN courses AS c ON c.course_id = en.course_id
 JOIN students AS s ON s.student_id = en.student_id
 ORDER BY s.full_name, p.progress_id;
 
-3. Для кожної категорії курсів знайти топ‑1 курс за кількістю студентів.
+
+SELECT 
+  s.full_name AS full_name,
+ -- p.lesson_number,
+ -- c.course_id,
+  --p.progress_id AS progress_id,
+  SUM(CASE WHEN p.completed THEN 1 ELSE 0 END) OVER (
+    PARTITION BY s.student_id
+    ORDER BY p.lesson_number
+  ) AS cum_complete
+FROM progress AS p
+JOIN enrollments AS en ON en.enrollment_id = p.enrollment_id
+JOIN courses AS c ON c.course_id = en.course_id
+JOIN students AS s ON s.student_id = en.student_id
+
+3. Для кожної категорії курсів знайти топ-1 курс за кількістю студентів.
+
