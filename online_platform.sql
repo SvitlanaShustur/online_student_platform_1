@@ -187,8 +187,8 @@ SELECT
 	category
 FROM courses
 WHERE category = 'Data Science'
-
-## **Задача 2. Групування та агрегація**
+*
+## **Задача 2. Групування та агрегація*
 
 1. Порахувати кількість студентів у кожному місті.
 
@@ -344,7 +344,7 @@ ORDER BY s.full_name, p.progress_id;
 
 
 SELECT 
-  s.full_name AS full_name,
+  DISTINCT s.full_name,
  -- p.lesson_number,
  -- c.course_id,
   --p.progress_id AS progress_id,
@@ -356,15 +356,16 @@ FROM progress AS p
 JOIN enrollments AS en ON en.enrollment_id = p.enrollment_id
 JOIN courses AS c ON c.course_id = en.course_id
 JOIN students AS s ON s.student_id = en.student_id
+ORDER BY s.full_name;
 
 3. Для кожної категорії курсів знайти топ-1 курс за кількістю студентів.
 
 SELECT
   c.category,
+  c.course_name,
   COUNT(DISTINCT s.student_id) AS student_cnt,
-  DENSE_RANK() OVER (ORDER BY COUNT(DISTINCT s.student_id) DESC) AS drnk
 FROM courses AS c
 JOIN enrollments AS en ON c.course_id = en.course_id
 JOIN students AS s ON s.student_id = en.student_id
 GROUP BY c.category
-ORDER BY drnk, c.category;
+ORDER BY , c.category;
